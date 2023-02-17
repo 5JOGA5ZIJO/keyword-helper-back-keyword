@@ -34,11 +34,24 @@ async def create_chat(request:schemas.Chats,db:Session=Depends(get_db)):
 
     return new_chat
 
+# @router.get("/filter_by_keyword", tags=['chats'])
+# async def get_chats_by_keyword(keyword:str, db:Session=Depends(get_db)):
+#     chat_messages = db.query(models.Chats.chat).filter(models.Chats.chat.contains(keyword)).all()
+#     chats_list = [chat[0] for chat in chat_messages]
+#     return chats_list
+
+# @router.get("/filter_by_keyword", tags=['chats'])
+# async def get_chats_by_keyword(keyword:str, db:Session=Depends(get_db)):
+#     chat_ids = db.query(models.Chats.id).filter(models.Chats.chat.contains(keyword)).all()
+#     id_list = [id[0] for id in chat_ids]
+#     return id_list
+
 @router.get("/filter_by_keyword", tags=['chats'])
 async def get_chats_by_keyword(keyword:str, db:Session=Depends(get_db)):
-    chat_messages = db.query(models.Chats.chat).filter(models.Chats.chat.contains(keyword)).all()
-    chats_list = [chat[0] for chat in chat_messages]
-    return chats_list
+    chats = db.query(models.Chats).filter(models.Chats.chat.contains(keyword)).all()
+
+    result = [{"chat" : chat, "nickname" : db.query(models.Users.nickname).filter(models.Users.id == chat.user_id).first()[0]} for chat in chats]
+    return result
 
 # @router.get("/getdb/filter_by_id", tags=['chats'])
 # async def get_db_chats_filter_by_id(start_id: int, db:Session=Depends(get_db)):

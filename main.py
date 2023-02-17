@@ -9,12 +9,21 @@ import chatgpt
 from chatgpt import chatGPT
 import re
 from routers import users_router, chatgpt_router, chats_router
+from dotenv import load_dotenv
+import os
+import requests
 
-
+# 환경변수 가져오기
+load_dotenv()
+_VITE_NAVER_CLIENT_ID = os.environ.get("VITE_NAVER_CLIENT_ID")
+_VITE_NAVER_CLIENT_SECRET = os.environ.get("VITE_NAVER_CLIENT_SECRET")
 # Router
 app=FastAPI()
 
-
+# origins = [
+#     "http://localhost",
+#     "http://localhost:8080",
+# ]
 
 app.add_middleware(
     CORSMiddleware,
@@ -34,23 +43,32 @@ def get_db():
         db.close()
 
 
-
-
-
 app.include_router(users_router.router)
 app.include_router(chatgpt_router.router)
 app.include_router(chats_router.router)
 
 
 
+# 백과사전 API 요청 URL
+naver_api_url = "https://openapi.naver.com/v1/search/encyc.json"
 
+# 백과사전 검색 기능을 제공하는 API를 호출하는 함수
+def search_naver_encyclopedia(keyword):
+    headers = {
+        'X-Naver-Client-Id': _VITE_NAVER_CLIENT_ID,
+        'X-Naver-Client-Secret': _VITE_NAVER_CLIENT_SECRET
+    }
+    params = {
+        'query': keyword
+    }
+    response = requests.get(naver_api_url, headers=headers, params=params)
+    return response.json()
 
-#keyword 뽑아주는 엔드포인트
-# @app.post('/chatgpt')
-# async def get_summary(prompt : str):
-#     prompt = '다음 대화를 키워드 3개로 요약하고 리스트 형식으로 출력해줘' + prompt
-#     return chatGPT(prompt).strip()
-
+# 검색 API 엔드포인트
+@app.get("/search")
+async def search(keyword: str):
+    result = search_naver_encyclopedia(keyword)
+    return result
 
 
 if __name__ == "__main__":
@@ -58,77 +76,3 @@ if __name__ == "__main__":
 
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
 
-
-
-# from typing import Union
-# from fastapi import FastAPI
-# from pydantic import BaseModel, Field
-# from enum import Enum
-
-# app = FastAPI()
-
-# # 기초 Model 사용법
-# class Item(BaseModel):
-#     name:str
-#     price:float
-#     is_offer : Union[bool, None] = None
-
-# @app.get("/")
-# def read_root():
-#     return {"Hello" : "World"}
-
-# @app.get("/items/{item_id}")
-# def read_item(item_id : int, q : Union[str, None] = None):
-#     return {"item_id":item_id, "q":q}
-
-# @app.put("/items/{item_id}")
-# def update_item(item_id:int, item:Item):
-#     return {"item_name" : item.name, "item_id":item_id}
-
-
-# # 심화 Model 사용법
-# class ModelName(str, Enum):
-#     alexnet = "alexnet"
-#     resnet = "resnet"
-#     lenet = "lenet"
-
-# @app.get("/models/{model_name}")
-# async def get_model(model_name : ModelName):
-#     if model_name == ModelName.alexnet:
-#         return {"model_name" : model_name, "msg" : "알렉스넷이다"}
-#     if model_name.value == "lenet":
-#         return {"model_name" : model_name, "msg" : "르넷이다"}
-#     return {"model_name" : model_name, "msg" : "나머지다"}
-
-
-# # pagination
-# fake_items_db = [{"item_name" : "Foo"},{"item_name" : "Bar"},{"item_name" : "Baz"}]
-# @app.get("/animals")
-# def readt_animals(skip: int = 0, limit: int = 10):
-#     return fake_items_db[skip:skip + limit]
-
-
-# # request body(PUT/POST) + path 
-# class AA(BaseModel):
-#     name: str = Field(default="name", title="name title", max_length=300)
-#     desc : Union[str, None] = None
-#     price : float
-#     tax : Union[float, None] = None
-
-# @app.put("/aa/{item_id}")
-# def create_item(item_id:int, item:AA):
-#     return {"item_id" : item_id, **item.dict()}
-# @app.post("/aa")
-# def create_item(item:AA):
-#     item_dict = item.dict()
-#     if item.tax:
-#         price_with_tax = item.price + item.tax
-#         item_dict.update({"price_with_tax" : price_with_tax})
-#     return item_dict
-
-
-
-# if __name__ == "__main__":
-#     import uvicorn
-
-#     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

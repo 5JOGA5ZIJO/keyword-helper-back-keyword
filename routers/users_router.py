@@ -29,6 +29,11 @@ async def get_user_by_id(user_id: str, db:Session=Depends(get_db)):
     login_user = db.query(models.Users).filter(models.Users.id == user_id).first()
     return login_user.last_chat_id
 
+@router.get("/get_nickname_by_id", tags=["users"])
+async def get_user_by_id(user_id: str, db:Session=Depends(get_db)):
+    login_user = db.query(models.Users).filter(models.Users.id == user_id).first()
+    return login_user.nickname
+
 @router.post("/create", tags=['users'])
 async def create_user(request:schemas.Users,db:Session=Depends(get_db)):
     new_user = models.Chats(id=request.id, nickname=request.nickname,chat=request.chat,last_chat_id=request.last_chat_id)

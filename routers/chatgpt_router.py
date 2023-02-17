@@ -25,8 +25,13 @@ def get_db():
 @router.post('/login', tags=['chatgpt'])
 async def summary_by_user_id(user_id : str, db:Session=Depends(get_db)):
     login_user = db.query(models.Users).filter(models.Users.id == user_id).first()
-    start_id = login_user.last_chat_id
-    chat_messages = db.query(models.Chats.chat).filter(models.Chats.id > start_id).all()
+    if login_user.last_chat_id is None:
+        start_id = 0
+        print(start_id)
+    else:
+        start_id = login_user.last_chat_id
+        print(start_id)
+    chat_messages = db.query(models.Chats.chat).filter(models.Chats.id > start_id).filter(models.Chats.user_id != 'system').all()
     # chat_messages = db.query(models.Chats.chat).filter(models.Chats.id < 11).all()
 
     chats_list = [chat[0] for chat in chat_messages]
@@ -45,8 +50,9 @@ async def summary_by_user_id(user_id : str, db:Session=Depends(get_db)):
 
 @router.post('/time', tags=['chatgpt'])
 async def summary_by_time(minutes:int=Query(30,gt=0) ,db:Session=Depends(get_db)):
-    thirty_minutes_ago = datetime.utcnow() - timedelta(minutes=30)
-    chat_messages = db.query(models.Chats.chat).filter(models.Chats.created_at > thirty_minutes_ago).all()
+    thirty_minutes_ago = datetime.utcnow() - timedelta(minutes=minutes)
+    print(thirty_minutes_ago)
+    chat_messages = db.query(models.Chats.chat).filter(models.Chats.created_at > thirty_minutes_ago).filter(models.Chats.user_id != 'system').all()
     chats_list = [chat[0] for chat in chat_messages]
     chats = ', '.join(chats_list)
 
