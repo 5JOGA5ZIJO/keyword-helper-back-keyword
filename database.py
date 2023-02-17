@@ -23,8 +23,7 @@ DB = secrets["DB"]
 DB_URL = f"mysql+pymysql://{_user}:{_password}@{_host}:{_port}/{_database}?charset=utf8"
 
 engine = create_engine(
-    DB_URL, encoding='utf-8'
-)
+    DB_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

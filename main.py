@@ -36,7 +36,7 @@ async def hello():
 
 @app.post('/chatgpt')
 async def get_summary(prompt : str):
-    prompt = '다음 대화를 키워드 3개로 요약해줘' + prompt
+    prompt = '다음 대화를 키워드 3개로 요약하고 리스트 형식으로 출력해줘' + prompt
     return chatGPT(prompt).strip()
 
 
