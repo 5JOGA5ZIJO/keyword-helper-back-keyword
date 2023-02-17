@@ -1,13 +1,20 @@
 from fastapi import FastAPI, Depends
 import models, schemas
+from datetime import datetime, timedelta
 from database import engine, SessionLocal
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import chatgpt
 from chatgpt import chatGPT
+import re
+from routers import users_router, chatgpt_router, chats_router
 
+
+# Router
 app=FastAPI()
+
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -26,27 +33,24 @@ def get_db():
     finally:
         db.close()
 
-@app.get('/')
-async def hello():
-    return 'dd'
 
-@app.get("/getdb")
-async def get_db(db:Session=Depends(get_db)):
-    return db.query(models.Test).all()
 
-@app.post('/chatgpt')
-async def get_summary(prompt : str):
-    prompt = '다음 대화를 키워드 3개로 요약하고 리스트 형식으로 출력해줘' + prompt
-    return chatGPT(prompt).strip()
 
-# @app.post("/adddb")
-# async def add_db(request:schemas.Test, db:Session=Depends(get_db)):
-#     new_user = models.Test(name=request.name, age=request.age)
-#     db.add(new_user)
-#     db.commit()
-#     db.refresh(new_user)
-#     return new_user
-# 왜 안되지?
+
+app.include_router(users_router.router)
+app.include_router(chatgpt_router.router)
+app.include_router(chats_router.router)
+
+
+
+
+
+#keyword 뽑아주는 엔드포인트
+# @app.post('/chatgpt')
+# async def get_summary(prompt : str):
+#     prompt = '다음 대화를 키워드 3개로 요약하고 리스트 형식으로 출력해줘' + prompt
+#     return chatGPT(prompt).strip()
+
 
 
 if __name__ == "__main__":
